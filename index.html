@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Weather/Time Widget Update</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BatzWeatherTime</title>
+</head>
+<body>
+  <div class="widget">
+    <div class="row" id="datetime-row">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/clock.png" class="icon"/>
+      <span id="datetime">Loading...</span>
+    </div>
+    <div class="row">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/marker.png" class="icon"/>
+      <span id="location-display"></span>
+    </div>
+    <div class="row" id="weather-row">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/temperature.png" class="icon"/>
+      <span id="weather">Loading weather...</span>
+    </div>
+  </div>
+
+  <script>
+    // USER CONFIGURATION START
+    // IMPORTANT SECURITY NOTE:
+    // If you are hosting this widget and allowing users to pass their API key
+    // in the URL, that key will be visible. This is NOT recommended for production
+    // applications. It's only suitable if you completely understand the security
+    // and rate limit implications and share it with a very trusted, limited audience.
+
+    // If no API key is provided in the URL, you can put a default one here.
+    // If you leave this blank and don't provide it in the URL, weather will not load.
+    const DEFAULT_OPENWEATHER_API_KEY = '';
+
+    // Default location/units config (used if URL parameters are not provided)
+    const DEFAULT_CITY = '';
+    const DEFAULT_STATE = '';
+    const DEFAULT_COUNTRY = '';
+    const DEFAULT_TIMEZONE = '';
+    const DEFAULT_WEATHER_UNITS = 'imperial'; // 'imperial' or 'metric'
+    // USER CONFIGURATION END
+
+    // --- DO NOT MODIFY BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING ---
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Prioritize API key from URL, then default
+    const OPENWEATHER_API_KEY = urlParams.get('apikey') || DEFAULT_OPENWEATHER_API_KEY;
+
+    const USER_CITY = urlParams.get('city') || DEFAULT_CITY;
+    const USER_STATE = urlParams.get('state') || DEFAULT_STATE;
+    const USER_COUNTRY = urlParams.get('country') || DEFAULT_COUNTRY;
+    const USER_TIMEZONE = urlParams.get('timezone') || DEFAULT_TIMEZONE;
+    const WEATHER_UNITS = urlParams.get('units') || DEFAULT_WEATHER_UNITS;
+
+    function updateTime() {
+      if (!USER_TIMEZONE) {
+        document.getElementById('datetime').textContent = 'Error: Timezone missing from URL or config.';
+        return;
+      }
+      try {
+        const options = {
+          weekday: 'short', year: 'numeric', month: 'short', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', second: '2-digit',
+          timeZone: USER_TIMEZONE, timeZoneName: 'short'
+        };
+        const now = new Date().toLocaleString('en-US', options);
+        document.getElementById('datetime').textContent = now.replace(',', ' /');
+      } catch (e) {
+        document.getElementById('datetime').textContent = `Error: Invalid timezone '${USER_TIMEZONE}'.`;
+      }
+    }
+
+    async function updateWeather() {
+      if (!OPENWEATHER_API_KEY) {
+        document.getElementById('weather').textContent = "Error: OpenWeather API key missing from URL or config.";
+        return;
+      }
+      if (!USER_CITY || !USER_COUNTRY) {
+        document.getElementById('weather').textContent = "Error: City/Country missing from URL or config.";
+        return;
+      }
+
+      let locationQuery = USER_CITY;
+      if (USER_STATE) {
+        locationQuery += `,${USER_STATE}`;
+      }
+      locationQuery += `,${USER_COUNTRY}`;
+
+      try {
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${locationQuery}&appid=${OPENWEATHER_API_KEY}&units=${WEATHER_UNITS}`);
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(`Weather API Error: ${res.status} - ${errorData.message || 'Unknown error'}`);
+        }
+        const data = await res.json();
+        const temp = data.main.temp.toFixed(0);
+        const desc = data.weather[0].description;
+
+        let tempDisplay = '';
+        if (WEATHER_UNITS === 'imperial') {
+          const c = ((temp - 32) * 5 / 9).toFixed(0);
+          tempDisplay = `${temp} F / ${c} C`;
+        } else if (WEATHER_UNITS === 'metric') {
+          const f = (temp * 9 / 5 + 32).toFixed(0);
+          tempDisplay = `${temp} C / ${f} F`;
+        } else {
+            tempDisplay = `${temp} (Units: ${WEATHER_UNITS})`; // Fallback for unexpected units
+        }
+        document.getElementById('weather').textContent = `${desc.charAt(0).toUpperCase() + desc.slice(1)} | ${tempDisplay}`;
+
+      } catch (err) {
+        console.error("Error fetching weather:", err);
+        document.getElementById('weather').textContent = `Weather Error: ${err.message || 'Check console'}.`;
+      }
+    }
+
+    function updateLocationDisplay() {
+      let display = [];
+      if (USER_CITY) display.push(USER_CITY);
+      if (USER_STATE) display.push(USER_STATE);
+      if (USER_COUNTRY) display.push(USER_COUNTRY);
+
+      const locationText = display.length > 0 ? display.join(', ') : 'Location not configured.';
+      document.getElementById('location-display').textContent = locationText;
+    }
+
+
+    // Initial calls
+    updateLocationDisplay();
+    updateTime();
+    updateWeather();
+
+    // Set intervals
+    setInterval(updateTime, 1000);
+    setInterval(updateWeather, 600000); // Update weather every 10 minutes (600000 ms)
+  </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>

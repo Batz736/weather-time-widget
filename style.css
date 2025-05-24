@@ -1,0 +1,40 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: transparent;
+  color: white;
+}
+
+/* Customize the main widget container style here */
+.widget {
+  background: rgba(0, 0, 0, 0.5); /* Example: semi-transparent black background */
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 16px;
+  line-height: 1.5;
+  width: fit-content;
+  /* Add more customizable styles below */
+  /* For example: */
+  /* border: 1px solid #ccc; */
+  /* box-shadow: 2px 2px 5px rgba(0,0,0,0.3); */
+}
+
+/* Style for each row (time, location, weather) */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between icon and text */
+  margin-bottom: 4px; /* Space between rows */
+}
+
+/* Style for the icons */
+.icon {
+  width: 18px; /* Adjust icon size */
+  height: 18px;
+  /* Add more icon styles if needed, e.g., filter for color change */
+  /* filter: brightness(1.2); */
+}
+
+/* You can target specific text elements if needed, e.g.: */
+/* #datetime { font-weight: bold; } */
+/* #weather { color: lightblue; } */
